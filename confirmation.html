@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservation Enquiry | 270° Rooftop</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    .confirmation {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 30px 20px;
+      background: var(--sand);
+    }
+    .confirmation-card {
+      width: 100%;
+      max-width: 620px;
+      padding: clamp(28px, 6vw, 60px);
+      background: #fff;
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+    .confirmation-card h1 {
+      font-family: var(--ff-d);
+      font-size: clamp(36px, 7vw, 54px);
+      color: var(--ink);
+      margin: 18px 0;
+    }
+    .confirmation-card p {
+      color: var(--body);
+    }
+    .details {
+      text-align: left;
+      margin: 30px 0;
+      padding: 20px;
+      background: var(--sand);
+    }
+    .details p { margin: 8px 0; }
+    .confirmation-actions { margin-top: 28px; }
+  </style>
+</head>
+
+<body>
+  <main class="confirmation">
+    <section class="confirmation-card">
+      <p class="eyebrow">270° Rooftop</p>
+
+      <h1>Thank you, <span id="guestName">Guest</span>.</h1>
+
+      <p>Your reservation enquiry has been prepared.</p>
+
+      <div class="details" id="details">
+        <p><strong>Date:</strong> <span id="date"></span></p>
+        <p><strong>Time:</strong> <span id="time"></span></p>
+        <p><strong>Guests:</strong> <span id="guests"></span></p>
+        <p><strong>Phone:</strong> <span id="phone"></span></p>
+        <p><strong>Email:</strong> <span id="email"></span></p>
+        <p id="occasionRow" hidden><strong>Occasion:</strong> <span id="occasion"></span></p>
+        <p id="notesRow" hidden><strong>Special requests:</strong> <span id="notes"></span></p>
+      </div>
+
+      <p>If your email application opened, please send the prepared email to complete your enquiry.</p>
+
+      <div class="confirmation-actions">
+        <a href="index.html" class="btn btn-solid">Return to Website</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+
+      function show(id, value) {
+        document.getElementById(id).textContent = value || 'Not provided';
+      }
+
+      show('guestName', params.get('name') || 'Guest');
+      show('date', params.get('date'));
+      show('time', params.get('time'));
+      show('guests', params.get('guests'));
+      show('phone', params.get('phone'));
+      show('email', params.get('email'));
+
+      var occasion = params.get('occasion');
+      var notes = params.get('notes');
+
+      if (occasion) {
+        show('occasion', occasion);
+        document.getElementById('occasionRow').hidden = false;
+      }
+
+      if (notes) {
+        show('notes', notes);
+        document.getElementById('notesRow').hidden = false;
+      }
+    })();
+  </script>
+</body>
+</html>
