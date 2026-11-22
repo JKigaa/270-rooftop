@@ -1,4 +1,5 @@
 import { assertSameOrigin, audit, cleanText, currentStaff, json, randomId, validISODate } from "../../_lib/security.js";
+import { sendReservationEmail } from "../../_lib/email.js";
 
 export async function onRequestPatch({ request, env, params }) {
   if (!assertSameOrigin(request)) return json({ error: "Request rejected." }, 403);
@@ -37,5 +38,22 @@ export async function onRequestPatch({ request, env, params }) {
     return json({ error: "The reservation update could not be saved. Please try again." }, 500);
   }
   await audit(env, user.id, status !== existing.status ? "reservation_status_changed" : "reservation_updated", "reservation", id, { from: existing.status, to: status });
-  return json({ ok: true, message: "Reservation updated." });
+
+  let notification = null;
+  if (status === "confirmed" && existing.status !== "confirmed" && email) {
+    notification = await sendReservationEmail({
+      request, env,
+      reservation: {
+        id, customer_name: name, customer_email: email,
+        reservation_date: date, reservation_time: time, guest_count: guests
+      },
+      templateKey: "reservation-confirmed",
+      eventKey: "reservation:" + id + ":confirmed:v" + (Number(existing.version || 1) + 1)
+    });
+  }
+  return json({
+    ok: true,
+    message: "Reservation updated.",
+    notification: notification ? (notification.sent ? "confirmation_email_sent" : "confirmation_email_failed") : null
+  });
 }
