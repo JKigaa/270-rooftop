@@ -2,6 +2,7 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const loginPanel = $("loginPanel"), appPanel = $("appPanel");
+  let currentRole = "";
   const message = (id, text) => { $(id).textContent = text || ""; };
   async function api(path, options = {}) {
     const response = await fetch(path, { credentials: "same-origin", headers: { "content-type": "application/json", ...(options.headers || {}) }, ...options });
@@ -15,6 +16,7 @@
   }
   function showApp(user) {
     loginPanel.classList.add("hidden"); appPanel.classList.remove("hidden");
+    currentRole = user.role;
     $("staffName").textContent = user.full_name + " · " + user.role;
     if (["owner","manager"].includes(user.role)) { $("staffManagement").classList.remove("hidden"); loadStaff(); }
     $("passwordNotice").classList.toggle("hidden", !user.must_change_password);
@@ -109,7 +111,8 @@
         });
         const accessCell = document.createElement("td");
         const accessButton = document.createElement("button");
-        accessButton.className = "quiet"; accessButton.textContent = person.is_active ? "Deactivate" : "Activate";
+        accessButton.className = "quiet"; accessButton.textContent = currentRole === "owner" && person.role !== "manager" ? "Manager controls access" : (person.is_active ? "Deactivate" : "Activate");
+        accessButton.disabled = currentRole === "owner" && person.role !== "manager";
         accessButton.addEventListener("click", async () => {
           accessButton.disabled = true;
           try { await api("/api/staff/" + encodeURIComponent(person.id), { method: "PATCH", body: JSON.stringify({ is_active: !person.is_active }) }); loadStaff(); }
