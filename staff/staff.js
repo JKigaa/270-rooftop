@@ -116,7 +116,7 @@
       tbody.replaceChildren();
       if (!rows.length) {
         const tr = document.createElement("tr"), td = document.createElement("td");
-        td.colSpan = 8; td.className = "empty"; td.textContent = "No reservations have been entered yet.";
+        td.colSpan = 7; td.className = "empty"; td.textContent = "No reservations have been entered yet.";
         tr.append(td); tbody.append(tr);
       } else {
         rows.forEach(r => {
@@ -151,7 +151,7 @@
           detailsButton.type = "button"; detailsButton.className = "quiet";
           detailsButton.textContent = ["owner","manager"].includes(currentRole) ? "Details & activity" : "View details";
           const detailRow = document.createElement("tr"); detailRow.className = "hidden";
-          const detailCell = document.createElement("td"); detailCell.colSpan = 8; detailCell.className = "activity-detail"; detailRow.append(detailCell);
+          const detailCell = document.createElement("td"); detailCell.colSpan = 7; detailCell.className = "activity-detail"; detailRow.append(detailCell);
           detailsButton.addEventListener("click", () => loadReservationDetails(r, detailsButton, detailRow, detailCell));
           detailsCell.append(detailsButton); tr.append(detailsCell); tbody.append(tr, detailRow);
         });
