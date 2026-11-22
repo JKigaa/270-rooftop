@@ -1,6 +1,7 @@
-import { audit, hashPassword, json, randomId, validEmail, validPassword, cleanText } from "../../_lib/security.js";
+import { assertSameOrigin, audit, hashPassword, json, randomId, validEmail, validPassword, cleanText } from "../../_lib/security.js";
 
 export async function onRequestPost({ request, env }) {
+  if (!assertSameOrigin(request)) return json({ error: "Request rejected." }, 403);
   let body;
   try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
   const suppliedSecret = request.headers.get("X-Setup-Secret") || "";
