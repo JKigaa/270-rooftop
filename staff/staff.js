@@ -38,28 +38,71 @@
     if (event.event_type === "reservation_updated") return "Reservation details updated";
     return event.event_type.replaceAll("_", " ");
   }
-  async function loadActivity(id, button, detailRow, cell) {
-    if (!detailRow.classList.contains("hidden")) { detailRow.classList.add("hidden"); button.textContent = "View activity"; return; }
-    detailRow.classList.remove("hidden"); button.textContent = "Hide activity";
+  function addDetailLine(container, label, value) {
+    const line = document.createElement("p");
+    line.className = "booking-detail-line";
+    const heading = document.createElement("strong");
+    heading.textContent = label + ": ";
+    const content = document.createElement("span");
+    content.textContent = value || "Not provided";
+    line.append(heading, content);
+    container.append(line);
+  }
+  async function loadReservationDetails(reservation, button, detailRow, cell) {
+    if (!detailRow.classList.contains("hidden")) {
+      detailRow.classList.add("hidden");
+      button.textContent = currentRole === "owner" || currentRole === "manager" ? "Details & activity" : "View details";
+      return;
+    }
+    detailRow.classList.remove("hidden");
+    button.textContent = "Hide details";
     if (detailRow.dataset.loaded === "true") return;
-    cell.textContent = "Loading activity…";
-    try {
-      const data = await api("/api/reservations/" + encodeURIComponent(id) + "/events");
-      const events = data.events || []; cell.replaceChildren();
-      if (!events.length) cell.textContent = "No staff activity has been recorded.";
-      else {
-        const list = document.createElement("ol"); list.className = "activity-list";
-        events.forEach(event => {
-          const item = document.createElement("li");
-          const action = document.createElement("strong"); action.textContent = eventDescription(event);
-          const actor = document.createElement("span"); actor.textContent = event.actor_name + " · " + event.actor_role;
-          const time = document.createElement("time"); time.textContent = formatEventDate(event.created_at);
-          item.append(action, actor, time); list.append(item);
-        });
-        cell.append(list);
+    cell.textContent = "Loading booking details…";
+    cell.replaceChildren();
+    const details = document.createElement("div");
+    details.className = "booking-details";
+    addDetailLine(details, "Phone", reservation.customer_phone);
+    addDetailLine(details, "Email", reservation.customer_email);
+    addDetailLine(details, "Occasion", reservation.occasion);
+    addDetailLine(details, "Special requests", reservation.special_requests || "No special requests provided");
+    cell.append(details);
+    if (["owner", "manager"].includes(currentRole)) {
+      const heading = document.createElement("h3");
+      heading.className = "activity-heading";
+      heading.textContent = "Activity history";
+      cell.append(heading);
+      try {
+        const data = await api("/api/reservations/" + encodeURIComponent(reservation.id) + "/events");
+        const events = data.events || [];
+        if (!events.length) {
+          const empty = document.createElement("p");
+          empty.className = "muted";
+          empty.textContent = "No activity has been recorded for this reservation.";
+          cell.append(empty);
+        } else {
+          const list = document.createElement("ol");
+          list.className = "activity-list";
+          events.forEach(event => {
+            const item = document.createElement("li");
+            const action = document.createElement("strong");
+            action.textContent = eventDescription(event);
+            const actor = document.createElement("span");
+            actor.textContent = event.actor_name + " · " + event.actor_role;
+            const time = document.createElement("time");
+            time.textContent = formatEventDate(event.created_at);
+            item.append(action, actor, time);
+            list.append(item);
+          });
+          cell.append(list);
+        }
+      } catch (error) {
+        const problem = document.createElement("p");
+        problem.className = "message";
+        problem.textContent = "Activity history could not be loaded: " + error.message;
+        cell.append(problem);
       }
-      detailRow.dataset.loaded = "true";
-    } catch (error) { cell.textContent = error.message; }
+    }
+    detailRow.dataset.loaded = "true";
   }
   async function loadReservations() {
     try {
@@ -73,7 +116,7 @@
       tbody.replaceChildren();
       if (!rows.length) {
         const tr = document.createElement("tr"), td = document.createElement("td");
-        td.colSpan = 6; td.className = "empty"; td.textContent = "No reservations have been entered yet.";
+        td.colSpan = 8; td.className = "empty"; td.textContent = "No reservations have been entered yet.";
         tr.append(td); tbody.append(tr);
       } else {
         rows.forEach(r => {
@@ -93,16 +136,24 @@
             finally { select.disabled = false; }
           });
           statusCell.append(select); tr.append(statusCell);
-          if (["owner","manager"].includes(currentRole)) {
-            const activityCell = document.createElement("td");
-            const activityButton = document.createElement("button");
-            activityButton.type = "button"; activityButton.className = "quiet"; activityButton.textContent = "View activity";
-            const detailRow = document.createElement("tr"); detailRow.className = "hidden";
-            const detailCell = document.createElement("td"); detailCell.colSpan = 6; detailCell.className = "activity-detail";
-            detailRow.append(detailCell);
-            activityButton.addEventListener("click", () => loadActivity(r.id, activityButton, detailRow, detailCell));
-            activityCell.append(activityButton); tr.append(activityCell); tbody.append(tr, detailRow);
-          } else { tr.append(document.createElement("td")); tbody.append(tr); }
+          const actorCell = document.createElement("td");
+          actorCell.className = "last-action";
+          const actorName = document.createElement("strong");
+          actorName.textContent = r.status_action_by || (r.status === "pending" ? "Not yet actioned" : "Staff account unavailable");
+          const actorRole = document.createElement("span");
+          actorRole.textContent = r.status_action_role || (r.status === "pending" ? "Awaiting staff review" : "Action recorded");
+          const actorTime = document.createElement("time");
+          actorTime.textContent = formatEventDate(r.updated_at);
+          actorCell.append(actorName, actorRole, actorTime);
+          tr.append(actorCell);
+          const detailsCell = document.createElement("td");
+          const detailsButton = document.createElement("button");
+          detailsButton.type = "button"; detailsButton.className = "quiet";
+          detailsButton.textContent = ["owner","manager"].includes(currentRole) ? "Details & activity" : "View details";
+          const detailRow = document.createElement("tr"); detailRow.className = "hidden";
+          const detailCell = document.createElement("td"); detailCell.colSpan = 8; detailCell.className = "activity-detail"; detailRow.append(detailCell);
+          detailsButton.addEventListener("click", () => loadReservationDetails(r, detailsButton, detailRow, detailCell));
+          detailsCell.append(detailsButton); tr.append(detailsCell); tbody.append(tr, detailRow);
         });
       }
       message("reservationMessage", "");
