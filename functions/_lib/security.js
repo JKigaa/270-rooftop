@@ -14,7 +14,7 @@ export function getCookie(request, name) {
   for (const part of raw.split(";")) {
     const item = part.trim();
     const index = item.indexOf("=");
-    if (index > -1 && item.slice(0, index) === name) return decodeURIComponent(item.slice(index + 1));
+    if (index > -1 && item.slice(0, index) === name) { try { return decodeURIComponent(item.slice(index + 1)); } catch { return null; } }
   }
   return null;
 }
@@ -91,7 +91,11 @@ export async function currentStaff(request, env) {
   const row = await env.DB.prepare(
     `SELECT u.id, u.email, u.full_name, u.role, u.manager_id, u.must_change_password
      FROM staff_sessions s JOIN staff_users u ON u.id = s.user_id
-     WHERE s.token_hash = ? AND s.revoked_at IS NULL AND s.expires_at > ? AND u.is_active = 1`
+     WHERE s.token_hash = ? AND s.revoked_at IS NULL AND s.expires_at > ? AND u.is_active = 1
+       AND (u.role = 'owner' OR EXISTS (
+         SELECT 1 FROM staff_users manager
+         WHERE manager.id = u.manager_id AND manager.is_active = 1
+       ))`
   ).bind(tokenHash, now).first();
   return row || null;
 }
