@@ -1,16 +1,18 @@
-import { audit, cleanText, currentStaff, json, randomId } from "../../_lib/security.js";
+import { assertSameOrigin, audit, cleanText, currentStaff, json, randomId } from "../../_lib/security.js";
 
 export async function onRequestPatch({ request, env, params }) {
-  if (request.headers.get("Origin") && new URL(request.headers.get("Origin")).origin !== new URL(request.url).origin) return json({ error: "Request rejected." }, 403);
+  if (!assertSameOrigin(request)) return json({ error: "Request rejected." }, 403);
   const user = await currentStaff(request, env);
   if (!user) return json({ error: "Please sign in to continue." }, 401);
+  if (user.must_change_password) return json({ error: "Change your temporary password before using reservations." }, 403);
   let body;
   try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
   const id = params.id;
   const existing = await env.DB.prepare("SELECT * FROM reservations WHERE id = ?").bind(id).first();
   if (!existing) return json({ error: "Reservation not found." }, 404);
   const allowed = ["pending","confirmed","declined","cancelled","completed","no_show"];
-  const status = allowed.includes(body.status) ? body.status : existing.status;
+  if (body.status !== undefined && !allowed.includes(body.status)) return json({ error: "Choose a valid reservation status." }, 400);
+  const status = body.status === undefined ? existing.status : body.status;
   const name = body.customer_name === undefined ? existing.customer_name : cleanText(body.customer_name, 100);
   const phone = body.customer_phone === undefined ? existing.customer_phone : cleanText(body.customer_phone, 30);
   const email = body.customer_email === undefined ? existing.customer_email : (cleanText(body.customer_email, 254).toLowerCase() || null);
