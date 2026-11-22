@@ -21,7 +21,7 @@ export async function onRequestPatch({ request, env, params }) {
   const guests = body.guest_count === undefined ? existing.guest_count : Number(body.guest_count);
   const occasion = body.occasion === undefined ? existing.occasion : cleanText(body.occasion, 80) || null;
   const notes = body.special_requests === undefined ? existing.special_requests : cleanText(body.special_requests, 1000) || null;
-  if (name.length < 2 || phone.length < 7 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || !Number.isInteger(guests) || guests < 1 || guests > 40) return json({ error: "Check the guest details, date, time and guest count." }, 400);
+  if (name.length < 2 || phone.length < 7 || !validISODate(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || !Number.isInteger(guests) || guests < 1 || guests > 40) return json({ error: "Check the guest details, date, time and guest count." }, 400);
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Enter a valid email address or leave it blank." }, 400);
   const now = new Date().toISOString();
   try {
