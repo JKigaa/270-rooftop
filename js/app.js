@@ -1,10 +1,8 @@
 (function(){
   'use strict';
 
-  var TO = '270rooftop@gmail.com';
   var WA_NUM = '254702455665';
   var DEFAULT_MSG = "Hello 270\u00B0 Rooftop, I'd like to enquire about a reservation.";
-  var CONFIRM = 'confirmation.html';
 
   var $ = function(id){ return document.getElementById(id); };
 
@@ -188,8 +186,8 @@
     if (bad.length){
       var alertBox = $('formAlert');
       $('alertDetail').textContent = bad.length === 1
-        ? 'One field needs your attention before we can build the email.'
-        : bad.length + ' fields need your attention before we can build the email.';
+        ? 'One field needs your attention before we can submit your enquiry.'
+        : bad.length + ' fields need your attention before we can submit your enquiry.';
       alertBox.classList.add('show');
       fields[bad[0]].el.focus();
       alertBox.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -209,28 +207,6 @@
       notes: notes,
       occasion: occ
     };
-  }
-
-  /* ---------- Mailto ---------- */
-  function buildMailto(d){
-    var subject = 'Reservation Enquiry: ' + d.name + ', ' + fmtDateShort(d.date);
-    var lines = [
-      'Hello 270\u00B0 Rooftop,',
-      '',
-      'I would like to enquire about a reservation.',
-      '',
-      'Name: ' + d.name,
-      'Date: ' + fmtDateLong(d.date),
-      'Time: ' + fmt12(d.time),
-      'Guests: ' + d.guests + (d.guests === '1' ? ' person' : ' people'),
-      'Phone: ' + d.phone,
-      'Email: ' + d.email
-    ];
-    if (d.occasion) lines.push('Occasion: ' + d.occasion);
-    if (d.notes) lines.push('Special requests: ' + d.notes);
-    lines.push('', 'Please let me know if this is possible. Thank you.');
-    var body = lines.join('\r\n');
-    return 'mailto:' + TO + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   }
 
   function waText(d){
@@ -303,8 +279,11 @@
       if (!response.ok || !result.ok) throw new Error(result.error || 'We could not submit your enquiry. Please try again.');
 
       alertBox.classList.remove('show');
-      $('successDetail').textContent = 'Reference: ' + result.reservation.reference_code +
-        '. We have emailed you an acknowledgement. Your table is not confirmed until our team approves the request.';
+      var acknowledgement = result.email_sent
+        ? 'An acknowledgement email has been sent to your inbox.'
+        : 'Your request is saved, but we could not send the acknowledgement email. Please contact us by WhatsApp or phone.';
+      $('successDetail').textContent = 'Reference: ' + result.reservation.reference_code + '. ' + acknowledgement +
+        ' Your table is not confirmed until our team approves the request.';
       successBox.classList.add('show');
       successBox.scrollIntoView({ behavior:'smooth', block:'center' });
       form.reset();
