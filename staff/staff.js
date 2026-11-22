@@ -17,11 +17,15 @@
   function showApp(user) {
     loginPanel.classList.add("hidden"); appPanel.classList.remove("hidden");
     currentRole = user.role;
+    const canManageStaff = ["owner","manager"].includes(user.role);
     $("staffName").textContent = user.full_name + " · " + user.role;
-    if (["owner","manager"].includes(user.role)) $("staffManagement").classList.remove("hidden");
+    $("staffManagement").classList.toggle("hidden", !canManageStaff || !!user.must_change_password);
     $("passwordNotice").classList.toggle("hidden", !user.must_change_password);
-    document.querySelectorAll(".stats,.entry-panel,#staffManagement,.app > .panel").forEach(panel => panel.classList.toggle("hidden", !!user.must_change_password));
-    if (!user.must_change_password) { loadReservations(); if (["owner","manager"].includes(user.role)) loadStaff(); }
+    document.querySelectorAll(".stats,.entry-panel,.app > .panel:not(#staffManagement)").forEach(panel => panel.classList.toggle("hidden", !!user.must_change_password));
+    if (!user.must_change_password) {
+      loadReservations();
+      if (canManageStaff) loadStaff();
+    }
   }
   async function loadReservations() {
     try {
@@ -87,7 +91,9 @@
     } catch (error) { message("passwordMessage", error.message); }
   });
   $("reservationForm").addEventListener("submit", async event => {
-    event.preventDefault(); message("createMessage", "");
+    event.preventDefault();
+    const form = event.currentTarget;
+    message("createMessage", "");
     const payload = {
       customer_name: $("guestName").value, customer_phone: $("guestPhone").value,
       customer_email: $("guestEmail").value, reservation_date: $("guestDate").value,
@@ -98,7 +104,7 @@
     try {
       const data = await api("/api/reservations", { method: "POST", body: JSON.stringify(payload) });
       message("createMessage", "Saved booking " + data.reservation.reference_code + " as pending.");
-      event.currentTarget.reset(); $("guestCount").value = "2"; loadReservations();
+      form.reset(); $("guestCount").value = "2"; loadReservations();
     } catch (error) { message("createMessage", error.message); }
   });
   async function loadStaff() {
@@ -125,7 +131,9 @@
     } catch (error) { message("staffMessage", error.message); }
   }
   $("staffForm").addEventListener("submit", async event => {
-    event.preventDefault(); message("staffMessage", "");
+    event.preventDefault();
+    const form = event.currentTarget;
+    message("staffMessage", "");
     $("temporaryPassword").classList.add("hidden");
     try {
       const data = await api("/api/staff", { method: "POST", body: JSON.stringify({ full_name: $("newStaffName").value, email: $("newStaffEmail").value }) });
@@ -136,7 +144,7 @@
       const copy = document.createElement("button"); copy.className = "quiet"; copy.textContent = "Copy password";
       copy.addEventListener("click", async () => { await navigator.clipboard.writeText(data.temporary_password); copy.textContent = "Copied"; });
       box.append(title, code, document.createElement("br"), copy);
-      event.currentTarget.reset(); loadStaff();
+      form.reset(); loadStaff();
     } catch (error) { message("staffMessage", error.message); }
   });
   $("loadStaffButton").addEventListener("click", loadStaff);
