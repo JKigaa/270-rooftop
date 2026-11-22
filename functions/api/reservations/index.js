@@ -13,7 +13,7 @@ export async function onRequestGet({ request, env }) {
   if (status && ["pending","confirmed","declined","cancelled","completed","no_show"].includes(status)) {
     clauses.push("status = ?"); values.push(status);
   }
-  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) { clauses.push("reservation_date = ?"); values.push(date); }
+  if (date && validISODate(date)) { clauses.push("reservation_date = ?"); values.push(date); }
   const where = clauses.length ? "WHERE " + clauses.join(" AND ") : "";
   const result = await env.DB.prepare(
     `SELECT id, reference_code, customer_name, customer_phone, customer_email, reservation_date,
@@ -39,7 +39,7 @@ export async function onRequestPost({ request, env }) {
   const source = ["website","whatsapp","phone","walk_in","staff","other"].includes(body.source) ? body.source : "staff";
   const occasion = cleanText(body.occasion, 80) || null;
   const notes = cleanText(body.special_requests, 1000) || null;
-  if (name.length < 2 || phone.length < 7 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || !Number.isInteger(guests) || guests < 1 || guests > 40) {
+  if (name.length < 2 || phone.length < 7 || !validISODate(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || !Number.isInteger(guests) || guests < 1 || guests > 40) {
     return json({ error: "Check the guest name, phone, date, time and guest count (1–40)." }, 400);
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Enter a valid email address or leave it blank." }, 400);
