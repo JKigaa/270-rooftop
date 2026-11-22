@@ -107,7 +107,15 @@
         [person.full_name, person.email, person.role, person.last_login_at ? new Date(person.last_login_at).toLocaleString() : "Not signed in"].forEach(value => {
           const td = document.createElement("td"); td.textContent = value; tr.append(td);
         });
-        tbody.append(tr);
+        const accessCell = document.createElement("td");
+        const accessButton = document.createElement("button");
+        accessButton.className = "quiet"; accessButton.textContent = person.is_active ? "Deactivate" : "Activate";
+        accessButton.addEventListener("click", async () => {
+          accessButton.disabled = true;
+          try { await api("/api/staff/" + encodeURIComponent(person.id), { method: "PATCH", body: JSON.stringify({ is_active: !person.is_active }) }); loadStaff(); }
+          catch (error) { message("staffMessage", error.message); accessButton.disabled = false; }
+        });
+        accessCell.append(accessButton); tr.append(accessCell); tbody.append(tr);
       });
       message("staffMessage", "");
     } catch (error) { message("staffMessage", error.message); }
