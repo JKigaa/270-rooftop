@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Initial Owner Setup | 270° Rooftop</title>
+<link rel="stylesheet" href="/staff/staff.css">
+</head>
+<body>
+<main class="shell">
+<section class="auth-card">
+<a class="brand" href="/"><span>270°</span><small>ROOFTOP · INITIAL SETUP</small></a>
+<p class="eyebrow">ONE-TIME OWNER SETUP</p>
+<h1>Create the owner account.</h1>
+<p class="muted">This page is only for creating the first owner account. You will need the one-time setup secret configured in Cloudflare.</p>
+<form id="setupForm">
+<label for="setupSecret">Setup secret</label><input id="setupSecret" type="password" autocomplete="off" required>
+<label for="fullName">Full name</label><input id="fullName" maxlength="100" autocomplete="name" required>
+<label for="ownerEmail">Owner work email</label><input id="ownerEmail" type="email" maxlength="254" autocomplete="email" required>
+<label for="ownerPassword">Password (at least 12 characters)</label><input id="ownerPassword" type="password" minlength="12" maxlength="128" autocomplete="new-password" required>
+<button class="primary" type="submit">Create owner account</button>
+</form>
+<p id="setupMessage" class="message" role="alert"></p>
+<p class="foot">This setup closes automatically after the first owner account is created.</p>
+</section>
+</main>
+<script>
+(() => {
+  const form = document.getElementById("setupForm");
+  const message = document.getElementById("setupMessage");
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = form.querySelector("button");
+    button.disabled = true;
+    message.textContent = "";
+    try {
+      const response = await fetch("/api/auth/setup-owner", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "X-Setup-Secret": document.getElementById("setupSecret").value
+        },
+        body: JSON.stringify({
+          full_name: document.getElementById("fullName").value,
+          email: document.getElementById("ownerEmail").value,
+          password: document.getElementById("ownerPassword").value
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Owner setup failed.");
+      form.reset();
+      message.textContent = data.message + " You can now sign in at /staff/.";
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
