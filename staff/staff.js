@@ -27,6 +27,40 @@
       if (canManageStaff) loadStaff();
     }
   }
+  function formatEventDate(value) {
+    if (!value) return "Time unavailable";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleString("en-KE", { timeZone: "Africa/Nairobi", dateStyle: "medium", timeStyle: "short" });
+  }
+  function eventDescription(event) {
+    if (event.event_type === "reservation_created") return "Reservation created" + (event.new_status ? " · " + event.new_status.replace("_", " ") : "");
+    if (event.event_type === "status_changed") return "Status changed" + (event.previous_status && event.new_status ? " · " + event.previous_status.replace("_", " ") + " → " + event.new_status.replace("_", " ") : "");
+    if (event.event_type === "reservation_updated") return "Reservation details updated";
+    return event.event_type.replaceAll("_", " ");
+  }
+  async function loadActivity(id, button, detailRow, cell) {
+    if (!detailRow.classList.contains("hidden")) { detailRow.classList.add("hidden"); button.textContent = "View activity"; return; }
+    detailRow.classList.remove("hidden"); button.textContent = "Hide activity";
+    if (detailRow.dataset.loaded === "true") return;
+    cell.textContent = "Loading activity…";
+    try {
+      const data = await api("/api/reservations/" + encodeURIComponent(id) + "/events");
+      const events = data.events || []; cell.replaceChildren();
+      if (!events.length) cell.textContent = "No staff activity has been recorded.";
+      else {
+        const list = document.createElement("ol"); list.className = "activity-list";
+        events.forEach(event => {
+          const item = document.createElement("li");
+          const action = document.createElement("strong"); action.textContent = eventDescription(event);
+          const actor = document.createElement("span"); actor.textContent = event.actor_name + " · " + event.actor_role;
+          const time = document.createElement("time"); time.textContent = formatEventDate(event.created_at);
+          item.append(action, actor, time); list.append(item);
+        });
+        cell.append(list);
+      }
+      detailRow.dataset.loaded = "true";
+    } catch (error) { cell.textContent = error.message; }
+  }
   async function loadReservations() {
     try {
       const data = await api("/api/reservations");
@@ -39,7 +73,7 @@
       tbody.replaceChildren();
       if (!rows.length) {
         const tr = document.createElement("tr"), td = document.createElement("td");
-        td.colSpan = 5; td.className = "empty"; td.textContent = "No reservations have been entered yet.";
+        td.colSpan = 6; td.className = "empty"; td.textContent = "No reservations have been entered yet.";
         tr.append(td); tbody.append(tr);
       } else {
         rows.forEach(r => {
@@ -58,7 +92,17 @@
             catch (error) { message("reservationMessage", error.message); select.value = r.status; }
             finally { select.disabled = false; }
           });
-          statusCell.append(select); tr.append(statusCell); tbody.append(tr);
+          statusCell.append(select); tr.append(statusCell);
+          if (["owner","manager"].includes(currentRole)) {
+            const activityCell = document.createElement("td");
+            const activityButton = document.createElement("button");
+            activityButton.type = "button"; activityButton.className = "quiet"; activityButton.textContent = "View activity";
+            const detailRow = document.createElement("tr"); detailRow.className = "hidden";
+            const detailCell = document.createElement("td"); detailCell.colSpan = 6; detailCell.className = "activity-detail";
+            detailRow.append(detailCell);
+            activityButton.addEventListener("click", () => loadActivity(r.id, activityButton, detailRow, detailCell));
+            activityCell.append(activityButton); tr.append(activityCell); tbody.append(tr, detailRow);
+          } else { tr.append(document.createElement("td")); tbody.append(tr); }
         });
       }
       message("reservationMessage", "");
