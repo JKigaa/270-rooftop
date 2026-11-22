@@ -11,7 +11,7 @@ export async function onRequestGet({ request, env }) {
   if (user.must_change_password) return json({ error: "Change your temporary password before managing staff." }, 403);
   if (!["owner","manager"].includes(user.role)) return json({ error: "You do not have permission to manage staff accounts." }, 403);
   const query = user.role === "owner"
-    ? env.DB.prepare("SELECT id, email, full_name, role, manager_id, is_active, last_login_at, created_at FROM staff_users ORDER BY role, full_name")
+    ? env.DB.prepare("SELECT id, email, full_name, role, manager_id, is_active, last_login_at, created_at FROM staff_users WHERE role = 'manager' AND manager_id = ? ORDER BY full_name").bind(user.id)
     : env.DB.prepare("SELECT id, email, full_name, role, manager_id, is_active, last_login_at, created_at FROM staff_users WHERE manager_id = ? ORDER BY full_name").bind(user.id);
   const result = await query.all();
   return json({ staff: result.results || [] });
