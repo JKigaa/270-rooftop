@@ -1,9 +1,10 @@
-import { audit, currentStaff, json } from "../../_lib/security.js";
+import { assertSameOrigin, audit, currentStaff, json } from "../../_lib/security.js";
 
 export async function onRequestPatch({ request, env, params }) {
-  if (request.headers.get("Origin") && new URL(request.headers.get("Origin")).origin !== new URL(request.url).origin) return json({ error: "Request rejected." }, 403);
+  if (!assertSameOrigin(request)) return json({ error: "Request rejected." }, 403);
   const actor = await currentStaff(request, env);
   if (!actor) return json({ error: "Please sign in to continue." }, 401);
+  if (actor.must_change_password) return json({ error: "Change your temporary password before managing staff." }, 403);
   if (!["owner","manager"].includes(actor.role)) return json({ error: "You do not have permission to manage accounts." }, 403);
   let body;
   try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
