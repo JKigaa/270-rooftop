@@ -19,6 +19,10 @@ export async function onRequestPatch({ request, env, params }) {
   await env.DB.prepare("UPDATE staff_users SET is_active = ?, updated_at = ? WHERE id = ?").bind(body.is_active ? 1 : 0, now, target.id).run();
   if (!body.is_active) {
     await env.DB.prepare("UPDATE staff_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL").bind(now, target.id).run();
+    if (target.role === "manager") {
+      await env.DB.prepare(`UPDATE staff_sessions SET revoked_at = ? WHERE revoked_at IS NULL AND user_id IN
+        (SELECT id FROM staff_users WHERE manager_id = ?)`).bind(now, target.id).run();
+    }
   }
   await audit(env, actor.id, body.is_active ? "staff_account_activated" : "staff_account_deactivated", "staff_user", target.id);
   return json({ ok: true, message: body.is_active ? "Account activated." : "Account deactivated." });
