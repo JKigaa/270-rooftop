@@ -275,34 +275,48 @@
   });
   syncWa();
 
-  /* ---------- Submit ---------- */
+  /* ---------- Submit reservation to the secure backend ---------- */
   var form = $('resForm');
-  form.addEventListener('submit', function(ev){
+  form.addEventListener('submit', async function(ev){
     ev.preventDefault();
     var data = validate();
     if (!data) return;
 
-    /* keep the WhatsApp buttons in step with what was actually submitted */
     var waUrl = 'https://wa.me/' + WA_NUM + '?text=' + encodeURIComponent(waText(data));
     Array.prototype.forEach.call(document.querySelectorAll('[data-wa]'), function(a){ a.href = waUrl; });
 
-    var href = buildMailto(data);
-
-    /* hand the details to the confirmation page */
-    var q = [];
-    q.push('name=' + encodeURIComponent(data.name));
-    q.push('date=' + encodeURIComponent(data.date));
-    q.push('time=' + encodeURIComponent(data.time));
-    q.push('guests=' + encodeURIComponent(data.guests));
-    q.push('phone=' + encodeURIComponent(data.phone));
-    q.push('email=' + encodeURIComponent(data.email));
-    if (data.occasion) q.push('occasion=' + encodeURIComponent(data.occasion));
-    if (data.notes) q.push('notes=' + encodeURIComponent(data.notes));
-
     var btn = form.querySelector('button[type="submit"]');
-    if (btn){ btn.disabled = true; btn.textContent = 'Opening your mail app…'; }
+    var originalButton = btn.innerHTML;
+    var successBox = $('formSuccess');
+    var alertBox = $('formAlert');
+    btn.disabled = true;
+    btn.textContent = 'Sending your enquiry…';
+    successBox.classList.remove('show');
 
-    window.location.href = href;
+    try {
+      var response = await fetch('/api/public/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      var result = await response.json().catch(function(){ return {}; });
+      if (!response.ok || !result.ok) throw new Error(result.error || 'We could not submit your enquiry. Please try again.');
+
+      alertBox.classList.remove('show');
+      $('successDetail').textContent = 'Reference: ' + result.reservation.reference_code +
+        '. We have emailed you an acknowledgement. Your table is not confirmed until our team approves the request.';
+      successBox.classList.add('show');
+      successBox.scrollIntoView({ behavior:'smooth', block:'center' });
+      form.reset();
+      syncWa();
+      btn.textContent = 'Enquiry received';
+    } catch (error) {
+      $('alertDetail').textContent = error.message || 'Something went wrong. Please try again or contact us on WhatsApp.';
+      alertBox.classList.add('show');
+      alertBox.scrollIntoView({ behavior:'smooth', block:'center' });
+      btn.disabled = false;
+      btn.innerHTML = originalButton;
+    }
   });
 
   /* clear the error on a field as soon as it is corrected */
