@@ -1,8 +1,9 @@
-import { audit, cleanText, currentStaff, json, randomId } from "../../_lib/security.js";
+import { assertSameOrigin, audit, cleanText, currentStaff, json, randomId } from "../../_lib/security.js";
 
 export async function onRequestGet({ request, env }) {
   const user = await currentStaff(request, env);
   if (!user) return json({ error: "Please sign in to continue." }, 401);
+  if (user.must_change_password) return json({ error: "Change your temporary password before using reservations." }, 403);
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
   const date = url.searchParams.get("date");
@@ -23,11 +24,10 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (request.headers.get("Origin") && new URL(request.headers.get("Origin")).origin !== new URL(request.url).origin) {
-    return json({ error: "Request rejected." }, 403);
-  }
+  if (!assertSameOrigin(request)) return json({ error: "Request rejected." }, 403);
   const user = await currentStaff(request, env);
   if (!user) return json({ error: "Please sign in to continue." }, 401);
+  if (user.must_change_password) return json({ error: "Change your temporary password before using reservations." }, 403);
   let body;
   try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
   const name = cleanText(body.customer_name, 100);
