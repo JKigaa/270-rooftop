@@ -16,9 +16,15 @@ export async function onRequestGet({ request, env }) {
   if (date && validISODate(date)) { clauses.push("reservation_date = ?"); values.push(date); }
   const where = clauses.length ? "WHERE " + clauses.join(" AND ") : "";
   const result = await env.DB.prepare(
-    `SELECT id, reference_code, customer_name, customer_phone, customer_email, reservation_date,
-      reservation_time, guest_count, occasion, special_requests, source, status, created_at, updated_at
-     FROM reservations ${where} ORDER BY reservation_date DESC, reservation_time DESC LIMIT ?`
+    `SELECT r.id, r.reference_code, r.customer_name, r.customer_phone, r.customer_email, r.reservation_date,
+      r.reservation_time, r.guest_count, r.occasion, r.special_requests, r.source, r.status, r.created_at, r.updated_at,
+      COALESCE(updater.full_name, '') AS status_action_by, COALESCE(updater.role, '') AS status_action_role,
+      COALESCE(creator.full_name, '') AS created_by_name
+     FROM reservations r
+     LEFT JOIN staff_users updater ON updater.id = r.updated_by_user_id
+     LEFT JOIN staff_users creator ON creator.id = r.created_by_user_id
+     ${where.replace(/\bstatus\b/g, "r.status").replace(/\breservation_date\b/g, "r.reservation_date")}
+     ORDER BY r.reservation_date DESC, r.reservation_time DESC LIMIT ?`
   ).bind(...values, limit).all();
   return json({ reservations: result.results || [] });
 }
