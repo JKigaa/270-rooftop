@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Staff Portal | 270° Rooftop</title>
+<link rel="stylesheet" href="/staff/staff.css?v=20261122-2">
+</head>
+<body>
+<main class="shell">
+  <section id="loginPanel" class="auth-card">
+    <a class="brand" href="/"><span>270°</span><small>ROOFTOP · STAFF</small></a>
+    <p class="eyebrow">TEAM ACCESS</p><h1>Welcome back.</h1>
+    <p class="muted">Sign in to manage reservations and guest enquiries.</p>
+    <form id="loginForm">
+      <label for="email">Work email</label><input id="email" type="email" autocomplete="username" required maxlength="254">
+      <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required maxlength="128">
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+    <p id="loginMessage" class="message" role="alert"></p>
+    <p class="foot">Authorised 270° Rooftop team members only.</p>
+  </section>
+
+  <section id="appPanel" class="app hidden">
+    <header class="topbar">
+      <a class="brand" href="/"><span>270°</span><small>ROOFTOP · STAFF</small></a>
+      <div class="account"><span id="staffName"></span><button id="logoutButton" class="quiet">Sign out</button></div>
+    </header>
+    <div class="welcome"><p class="eyebrow">STAFF WORKSPACE</p><h1>Reservations</h1><p class="muted">A clear view of the bookings your team is handling.</p></div>
+    <div id="passwordNotice" class="notice hidden">
+      <strong>Update your temporary password</strong>
+      <p>Your administrator issued a temporary password. Change it before continuing.</p>
+      <form id="passwordForm" class="password-form">
+        <input id="currentPassword" type="password" placeholder="Current password" autocomplete="current-password" required>
+        <input id="newPassword" type="password" placeholder="New password (12+ characters)" autocomplete="new-password" minlength="12" required>
+        <button class="primary" type="submit">Update password</button>
+      </form>
+      <p id="passwordMessage" class="message" role="alert"></p>
+    </div>
+    <div class="stats">
+      <article><span>Pending</span><strong id="pendingCount">—</strong></article>
+      <article><span>Confirmed</span><strong id="confirmedCount">—</strong></article>
+      <article><span>Today</span><strong id="todayCount">—</strong></article>
+    </div>
+    <section class="panel entry-panel">
+      <div class="panel-head"><div><p class="eyebrow">NEW BOOKING</p><h2>Record a reservation</h2></div></div>
+      <form id="reservationForm" class="reservation-form">
+        <label>Guest name<input id="guestName" required maxlength="100"></label>
+        <label>Phone number<input id="guestPhone" required maxlength="30" placeholder="+254…"></label>
+        <label>Email (optional)<input id="guestEmail" type="email" maxlength="254"></label>
+        <label>Date<input id="guestDate" type="date" required></label>
+        <label>Time<input id="guestTime" type="time" required></label>
+        <label>Guests<input id="guestCount" type="number" min="1" max="40" value="2" required></label>
+        <label>Enquiry received via<select id="guestSource"><option value="whatsapp">WhatsApp</option><option value="phone">Phone call</option><option value="website">Website</option><option value="walk_in">Walk-in</option><option value="other">Other</option></select></label>
+        <label>Occasion (optional)<input id="guestOccasion" maxlength="80" placeholder="Birthday, anniversary…"></label>
+        <label class="wide">Special requests<textarea id="guestNotes" rows="2" maxlength="1000"></textarea></label>
+        <div class="wide form-actions"><button class="primary" type="submit">Save reservation</button><span id="createMessage" class="message" role="status"></span></div>
+      </form>
+    </section>
+    <section id="staffManagement" class="panel hidden">
+      <div class="panel-head"><div><p class="eyebrow">TEAM ACCESS</p><h2>Staff accounts</h2></div><button id="loadStaffButton" class="quiet">Refresh</button></div>
+      <form id="staffForm" class="staff-form">
+        <input id="newStaffName" placeholder="Full name" required maxlength="100">
+        <input id="newStaffEmail" type="email" placeholder="Work email" required maxlength="254">
+        <button class="primary" type="submit">Create team account</button>
+      </form>
+      <p id="staffMessage" class="message" role="status"></p>
+      <div id="temporaryPassword" class="temp-password hidden"></div>
+      <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last sign-in</th><th>Access</th></tr></thead><tbody id="staffRows"></tbody></table></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">BOOKING REGISTER</p><h2>Recent reservations</h2></div><button id="refreshButton" class="quiet">Refresh</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Guest</th><th>Date &amp; time</th><th>Guests</th><th>Source</th><th>Status</th><th>Last updated by</th><th>Booking details</th></tr></thead><tbody id="reservationRows"><tr><td colspan="7" class="empty">Sign in to load reservations.</td></tr></tbody></table></div>
+      <p id="reservationMessage" class="message" role="status"></p>
+    </section>
+    <p class="foot">270° Rooftop · Internal staff system</p>
+  </section>
+</main>
+<script src="/staff/staff.js?v=20261122-2" defer></script>
+</body></html>

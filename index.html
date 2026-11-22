@@ -671,8 +671,8 @@ sweep(document)})();</script>
 
       <ol class="steps rv d2">
         <li><span class="n">1</span><div><strong>Fill in the form</strong><p>Name, contact, date, time and how many of you.</p></div></li>
-        <li><span class="n">2</span><div><strong>Your mail app opens</strong><p>We build the email for you. Just press send.</p></div></li>
-        <li><span class="n">3</span><div><strong>We confirm</strong><p>The team replies by email or phone, usually the same day.</p></div></li>
+        <li><span class="n">2</span><div><strong>We receive your request</strong><p>Your enquiry is saved securely and an acknowledgement is emailed to you.</p></div></li>
+        <li><span class="n">3</span><div><strong>We confirm your table</strong><p>Our team reviews your request and emails you once your reservation is approved.</p></div></li>
       </ol>
 
       <div class="callbox rv d3">
@@ -702,11 +702,16 @@ sweep(document)})();</script>
 
     <div class="form-card rv d1">
       <h3>Reservation enquiry</h3>
-      <p class="fsub">All fields marked <span style="color:var(--ember)">*</span> are required. Nothing is stored on this page. Your details go into an email you send yourself.</p>
+      <p class="fsub">All fields marked <span style="color:var(--ember)">*</span> are required. Submit your details here and we will email you an acknowledgement while our team reviews your request.</p>
 
       <div class="form-alert" id="formAlert" role="alert" aria-live="assertive">
         <strong>Please check the highlighted fields.</strong>
-        <span id="alertDetail">Some details are missing or need correcting before we can build your email.</span>
+        <span id="alertDetail">Some details are missing or need correcting before we can submit your enquiry.</span>
+      </div>
+
+      <div class="form-success" id="formSuccess" role="status" aria-live="polite">
+        <strong>Your reservation request has been received.</strong>
+        <span id="successDetail">We have emailed you an acknowledgement. Your table is not confirmed until our team approves the request.</span>
       </div>
 
       <form id="resForm" novalidate>
@@ -773,7 +778,7 @@ sweep(document)})();</script>
 
         <div class="form-foot">
           <button type="submit" class="btn btn-solid btn-block">
-            Send enquiry by email
+            Submit reservation enquiry
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16v16H4z" opacity="0"/><path d="M3 6.5A1.5 1.5 0 014.5 5h15A1.5 1.5 0 0121 6.5v11a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5v-11z"/><path d="M3.5 6.5L12 13l8.5-6.5"/></svg>
           </button>
           <div class="or-line">or</div>

@@ -428,6 +428,13 @@ p:last-child{margin-bottom:0}
 .form-alert.show{display:block}
 .form-alert strong{display:block;font-weight:500;margin-bottom:2px}
 
+.form-success{
+  display:none;margin:0 0 20px;padding:12px 15px;border-left:3px solid #64866d;background:#eef4ee;
+  font-size:13px;color:#294f35;line-height:1.55;
+}
+.form-success.show{display:block}
+.form-success strong{display:block;font-weight:500;margin-bottom:2px}
+
 .form-foot{margin-top:22px;display:flex;flex-direction:column;gap:13px}
 .form-foot .btn{padding:16px}
 .form-foot .fine{font-size:11.5px;color:var(--muted);line-height:1.55;text-align:center;margin:0}

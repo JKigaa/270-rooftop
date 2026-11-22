@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "270-rooftop",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-11-22",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "270-rooftop-db",
+      "database_id": "c1639d7a-ecf5-40d4-8048-e2ec8aaada48",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
