@@ -29,9 +29,13 @@ export function clearSessionCookie() {
 
 export function assertSameOrigin(request) {
   const origin = request.headers.get("Origin");
-  if (!origin) return true;
-  const url = new URL(request.url);
-  return new URL(origin).origin === url.origin;
+  if (!origin) return false;
+  try {
+    const url = new URL(request.url);
+    return new URL(origin).origin === url.origin;
+  } catch {
+    return false;
+  }
 }
 
 export function randomId() {
