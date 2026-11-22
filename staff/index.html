@@ -43,6 +43,32 @@
       <article><span>Confirmed</span><strong id="confirmedCount">—</strong></article>
       <article><span>Today</span><strong id="todayCount">—</strong></article>
     </div>
+    <section class="panel entry-panel">
+      <div class="panel-head"><div><p class="eyebrow">NEW BOOKING</p><h2>Record a reservation</h2></div></div>
+      <form id="reservationForm" class="reservation-form">
+        <label>Guest name<input id="guestName" required maxlength="100"></label>
+        <label>Phone number<input id="guestPhone" required maxlength="30" placeholder="+254…"></label>
+        <label>Email (optional)<input id="guestEmail" type="email" maxlength="254"></label>
+        <label>Date<input id="guestDate" type="date" required></label>
+        <label>Time<input id="guestTime" type="time" required></label>
+        <label>Guests<input id="guestCount" type="number" min="1" max="40" value="2" required></label>
+        <label>Enquiry received via<select id="guestSource"><option value="whatsapp">WhatsApp</option><option value="phone">Phone call</option><option value="website">Website</option><option value="walk_in">Walk-in</option><option value="other">Other</option></select></label>
+        <label>Occasion (optional)<input id="guestOccasion" maxlength="80" placeholder="Birthday, anniversary…"></label>
+        <label class="wide">Special requests<textarea id="guestNotes" rows="2" maxlength="1000"></textarea></label>
+        <div class="wide form-actions"><button class="primary" type="submit">Save reservation</button><span id="createMessage" class="message" role="status"></span></div>
+      </form>
+    </section>
+    <section id="staffManagement" class="panel hidden">
+      <div class="panel-head"><div><p class="eyebrow">TEAM ACCESS</p><h2>Staff accounts</h2></div><button id="loadStaffButton" class="quiet">Refresh</button></div>
+      <form id="staffForm" class="staff-form">
+        <input id="newStaffName" placeholder="Full name" required maxlength="100">
+        <input id="newStaffEmail" type="email" placeholder="Work email" required maxlength="254">
+        <button class="primary" type="submit">Create team account</button>
+      </form>
+      <p id="staffMessage" class="message" role="status"></p>
+      <div id="temporaryPassword" class="temp-password hidden"></div>
+      <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last sign-in</th></tr></thead><tbody id="staffRows"></tbody></table></div>
+    </section>
     <section class="panel">
       <div class="panel-head"><div><p class="eyebrow">BOOKING REGISTER</p><h2>Recent reservations</h2></div><button id="refreshButton" class="quiet">Refresh</button></div>
       <div class="table-wrap"><table><thead><tr><th>Guest</th><th>Date &amp; time</th><th>Guests</th><th>Source</th><th>Status</th></tr></thead><tbody id="reservationRows"><tr><td colspan="5" class="empty">Sign in to load reservations.</td></tr></tbody></table></div>
