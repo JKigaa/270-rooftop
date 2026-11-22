@@ -1,4 +1,4 @@
-import { assertSameOrigin, audit, cleanText, currentStaff, json, randomId } from "../../_lib/security.js";
+import { assertSameOrigin, audit, cleanText, currentStaff, json, randomId, validISODate } from "../../_lib/security.js";
 
 export async function onRequestGet({ request, env }) {
   const user = await currentStaff(request, env);
