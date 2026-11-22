@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS staff_users (
   )
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_single_owner ON staff_users(role) WHERE role = 'owner';
 CREATE INDEX IF NOT EXISTS idx_staff_users_manager_id ON staff_users(manager_id);
 CREATE INDEX IF NOT EXISTS idx_staff_users_role_active ON staff_users(role, is_active);
 
