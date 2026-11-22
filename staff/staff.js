@@ -20,7 +20,8 @@
     $("staffName").textContent = user.full_name + " · " + user.role;
     if (["owner","manager"].includes(user.role)) { $("staffManagement").classList.remove("hidden"); loadStaff(); }
     $("passwordNotice").classList.toggle("hidden", !user.must_change_password);
-    loadReservations();
+    document.querySelectorAll(".stats,.entry-panel,#staffManagement,.app > .panel").forEach(panel => panel.classList.toggle("hidden", !!user.must_change_password));
+    if (!user.must_change_password) loadReservations();
   }
   async function loadReservations() {
     try {
