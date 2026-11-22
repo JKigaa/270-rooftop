@@ -16,6 +16,7 @@
   function showApp(user) {
     loginPanel.classList.add("hidden"); appPanel.classList.remove("hidden");
     $("staffName").textContent = user.full_name + " · " + user.role;
+    if (["owner","manager"].includes(user.role)) { $("staffManagement").classList.remove("hidden"); loadStaff(); }
     $("passwordNotice").classList.toggle("hidden", !user.must_change_password);
     loadReservations();
   }
@@ -36,10 +37,21 @@
       } else {
         rows.forEach(r => {
           const tr = document.createElement("tr");
-          [r.customer_name, r.reservation_date + " · " + r.reservation_time, String(r.guest_count), r.source, r.status.replace("_", " ")].forEach(value => {
+          [r.customer_name, r.reservation_date + " · " + r.reservation_time, String(r.guest_count), r.source].forEach(value => {
             const td = document.createElement("td"); td.textContent = value; tr.append(td);
           });
-          tbody.append(tr);
+          const statusCell = document.createElement("td");
+          const select = document.createElement("select");
+          ["pending","confirmed","declined","cancelled","completed","no_show"].forEach(status => {
+            const option = document.createElement("option"); option.value = status; option.textContent = status.replace("_", " "); option.selected = status === r.status; select.append(option);
+          });
+          select.addEventListener("change", async () => {
+            select.disabled = true;
+            try { await api("/api/reservations/" + encodeURIComponent(r.id), { method: "PATCH", body: JSON.stringify({ status: select.value }) }); message("reservationMessage", "Reservation status updated."); loadReservations(); }
+            catch (error) { message("reservationMessage", error.message); select.value = r.status; }
+            finally { select.disabled = false; }
+          });
+          statusCell.append(select); tr.append(statusCell); tbody.append(tr);
         });
       }
       message("reservationMessage", "");
