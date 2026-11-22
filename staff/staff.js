@@ -71,5 +71,58 @@
       setTimeout(() => showLogin("Your password has been changed. Sign in with the new password."), 900);
     } catch (error) { message("passwordMessage", error.message); }
   });
-  api("/api/auth/me").then(data => data.user ? showApp(data.user) : showLogin()).catch(() => showLogin());
+  $("reservationForm").addEventListener("submit", async event => {
+    event.preventDefault(); message("createMessage", "");
+    const payload = {
+      customer_name: $("guestName").value, customer_phone: $("guestPhone").value,
+      customer_email: $("guestEmail").value, reservation_date: $("guestDate").value,
+      reservation_time: $("guestTime").value, guest_count: Number($("guestCount").value),
+      source: $("guestSource").value, occasion: $("guestOccasion").value,
+      special_requests: $("guestNotes").value
+    };
+    try {
+      const data = await api("/api/reservations", { method: "POST", body: JSON.stringify(payload) });
+      message("createMessage", "Saved booking " + data.reservation.reference_code + " as pending.");
+      event.currentTarget.reset(); $("guestCount").value = "2"; loadReservations();
+    } catch (error) { message("createMessage", error.message); }
+  });
+  async function loadStaff() {
+    try {
+      const data = await api("/api/staff");
+      const tbody = $("staffRows"); tbody.replaceChildren();
+      (data.staff || []).forEach(person => {
+        const tr = document.createElement("tr");
+        [person.full_name, person.email, person.role, person.last_login_at ? new Date(person.last_login_at).toLocaleString() : "Not signed in"].forEach(value => {
+          const td = document.createElement("td"); td.textContent = value; tr.append(td);
+        });
+        tbody.append(tr);
+      });
+      message("staffMessage", "");
+    } catch (error) { message("staffMessage", error.message); }
+  }
+  $("staffForm").addEventListener("submit", async event => {
+    event.preventDefault(); message("staffMessage", "");
+    $("temporaryPassword").classList.add("hidden");
+    try {
+      const data = await api("/api/staff", { method: "POST", body: JSON.stringify({ full_name: $("newStaffName").value, email: $("newStaffEmail").value }) });
+      const box = $("temporaryPassword"); box.classList.remove("hidden");
+      box.replaceChildren();
+      const title = document.createElement("strong"); title.textContent = "Account created — copy this temporary password now:";
+      const code = document.createElement("code"); code.textContent = data.temporary_password;
+      const copy = document.createElement("button"); copy.className = "quiet"; copy.textContent = "Copy password";
+      copy.addEventListener("click", async () => { await navigator.clipboard.writeText(data.temporary_password); copy.textContent = "Copied"; });
+      box.append(title, code, document.createElement("br"), copy);
+      event.currentTarget.reset(); loadStaff();
+    } catch (error) { message("staffMessage", error.message); }
+  });
+  $("loadStaffButton").addEventListener("click", loadStaff);
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
+  $("guestDate").min = today;
+  api("/api/auth/me").then(data => {
+    if (!data.user) return showLogin();
+    showApp(data.user);
+    if (["owner","manager"].includes(data.user.role)) {
+      $("staffManagement").classList.remove("hidden"); loadStaff();
+    }
+  }).catch(() => showLogin());
 })();
