@@ -18,10 +18,10 @@
     loginPanel.classList.add("hidden"); appPanel.classList.remove("hidden");
     currentRole = user.role;
     $("staffName").textContent = user.full_name + " · " + user.role;
-    if (["owner","manager"].includes(user.role)) { $("staffManagement").classList.remove("hidden"); loadStaff(); }
+    if (["owner","manager"].includes(user.role)) $("staffManagement").classList.remove("hidden");
     $("passwordNotice").classList.toggle("hidden", !user.must_change_password);
     document.querySelectorAll(".stats,.entry-panel,#staffManagement,.app > .panel").forEach(panel => panel.classList.toggle("hidden", !!user.must_change_password));
-    if (!user.must_change_password) loadReservations();
+    if (!user.must_change_password) { loadReservations(); if (["owner","manager"].includes(user.role)) loadStaff(); }
   }
   async function loadReservations() {
     try {
@@ -145,8 +145,5 @@
   api("/api/auth/me").then(data => {
     if (!data.user) return showLogin();
     showApp(data.user);
-    if (["owner","manager"].includes(data.user.role)) {
-      $("staffManagement").classList.remove("hidden"); loadStaff();
-    }
   }).catch(() => showLogin());
 })();
