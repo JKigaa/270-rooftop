@@ -24,12 +24,18 @@ export async function onRequestPatch({ request, env, params }) {
   if (name.length < 2 || phone.length < 7 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || !Number.isInteger(guests) || guests < 1 || guests > 40) return json({ error: "Check the guest details, date, time and guest count." }, 400);
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Enter a valid email address or leave it blank." }, 400);
   const now = new Date().toISOString();
-  await env.DB.prepare(`UPDATE reservations SET customer_name=?, customer_phone=?, customer_email=?, reservation_date=?,
-    reservation_time=?, guest_count=?, occasion=?, special_requests=?, status=?, updated_by_user_id=?, updated_at=?, version=version+1
-    WHERE id=?`).bind(name, phone, email, date, time, guests, occasion, notes, status, user.id, now, id).run();
-  await env.DB.prepare(`INSERT INTO reservation_events
-    (id, reservation_id, actor_user_id, event_type, previous_status, new_status, details_json)
-    VALUES (?, ?, ?, ?, ?, ?, ?)`).bind(randomId(), id, user.id, status !== existing.status ? "status_changed" : "reservation_updated", existing.status, status, JSON.stringify({ changed: true })).run();
+  try {
+    await env.DB.batch([
+      env.DB.prepare(`UPDATE reservations SET customer_name=?, customer_phone=?, customer_email=?, reservation_date=?,
+        reservation_time=?, guest_count=?, occasion=?, special_requests=?, status=?, updated_by_user_id=?, updated_at=?, version=version+1
+        WHERE id=?`).bind(name, phone, email, date, time, guests, occasion, notes, status, user.id, now, id),
+      env.DB.prepare(`INSERT INTO reservation_events
+        (id, reservation_id, actor_user_id, event_type, previous_status, new_status, details_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`).bind(randomId(), id, user.id, status !== existing.status ? "status_changed" : "reservation_updated", existing.status, status, JSON.stringify({ changed: true }))
+    ]);
+  } catch {
+    return json({ error: "The reservation update could not be saved. Please try again." }, 500);
+  }
   await audit(env, user.id, status !== existing.status ? "reservation_status_changed" : "reservation_updated", "reservation", id, { from: existing.status, to: status });
   return json({ ok: true, message: "Reservation updated." });
 }
